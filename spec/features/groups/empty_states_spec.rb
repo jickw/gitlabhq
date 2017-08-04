@@ -5,11 +5,11 @@ feature 'Groups Merge Requests Empty States' do
   let(:user) { create(:group_member, :developer, user: create(:user), group: group ).user }
 
   before do
-    gitlab_sign_in(user)
+    sign_in(user)
   end
 
   context 'group has a project' do
-    let(:project) { create(:empty_project, namespace: group) }
+    let(:project) { create(:project, namespace: group) }
 
     before do
       project.add_master(user)

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-feature 'Groups > Members > Manage access requests', feature: true do
+feature 'Groups > Members > Manage access requests' do
   let(:user) { create(:user) }
   let(:owner) { create(:user) }
   let(:group) { create(:group, :public, :access_requestable) }
@@ -8,7 +8,7 @@ feature 'Groups > Members > Manage access requests', feature: true do
   background do
     group.request_access(user)
     group.add_owner(owner)
-    gitlab_sign_in(owner)
+    sign_in(owner)
   end
 
   scenario 'owner can see access requests' do

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-feature 'Groups > Members > Manage members', feature: true do
+feature 'Groups > Members > Manage members' do
   include Select2Helper
 
   let(:user1) { create(:user, name: 'John Doe') }
@@ -8,7 +8,7 @@ feature 'Groups > Members > Manage members', feature: true do
   let(:group) { create(:group) }
 
   background do
-    gitlab_sign_in(user1)
+    sign_in(user1)
   end
 
   scenario 'update user to owner level', :js do

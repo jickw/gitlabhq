@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-feature 'Projects > Wiki > User previews markdown changes', feature: true, js: true do
+feature 'Projects > Wiki > User previews markdown changes', js: true do
   let(:user) { create(:user) }
   let(:project) { create(:project, namespace: user.namespace) }
   let(:wiki_content) do
@@ -16,9 +16,9 @@ feature 'Projects > Wiki > User previews markdown changes', feature: true, js: t
     project.team << [user, :master]
     WikiPages::CreateService.new(project, user, title: 'home', content: 'Home page').execute
 
-    gitlab_sign_in(user)
+    sign_in(user)
 
-    visit namespace_project_path(project.namespace, project)
+    visit project_path(project)
     find('.shortcuts-wiki').trigger('click')
   end
 
@@ -38,10 +38,10 @@ feature 'Projects > Wiki > User previews markdown changes', feature: true, js: t
 
         expect(page).to have_content("regular link")
 
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/regular\">regular link</a>")
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/a/b/relative\">relative link 1</a>")
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/a/b/c/relative\">relative link 2</a>")
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/a/b/c/e/f/relative\">relative link 3</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/regular\">regular link</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/a/b/relative\">relative link 1</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/a/b/c/relative\">relative link 2</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/a/b/c/e/f/relative\">relative link 3</a>")
       end
     end
 
@@ -60,10 +60,10 @@ feature 'Projects > Wiki > User previews markdown changes', feature: true, js: t
 
         expect(page).to have_content("regular link")
 
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/regular\">regular link</a>")
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/a-page/b-page/relative\">relative link 1</a>")
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/a-page/b-page/c-page/relative\">relative link 2</a>")
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/a-page/b-page/c-page/e/f/relative\">relative link 3</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/regular\">regular link</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/a-page/b-page/relative\">relative link 1</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/a-page/b-page/c-page/relative\">relative link 2</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/a-page/b-page/c-page/e/f/relative\">relative link 3</a>")
       end
     end
 
@@ -82,10 +82,10 @@ feature 'Projects > Wiki > User previews markdown changes', feature: true, js: t
 
         expect(page).to have_content("regular link")
 
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/regular\">regular link</a>")
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/a-page/b-page/relative\">relative link 1</a>")
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/a-page/b-page/c-page/relative\">relative link 2</a>")
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/a-page/b-page/c-page/e/f/relative\">relative link 3</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/regular\">regular link</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/a-page/b-page/relative\">relative link 1</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/a-page/b-page/c-page/relative\">relative link 2</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/a-page/b-page/c-page/e/f/relative\">relative link 3</a>")
       end
     end
   end
@@ -115,10 +115,10 @@ feature 'Projects > Wiki > User previews markdown changes', feature: true, js: t
 
         expect(page).to have_content("regular link")
 
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/regular\">regular link</a>")
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/a/b/relative\">relative link 1</a>")
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/a/b/c/relative\">relative link 2</a>")
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/a/b/c/e/f/relative\">relative link 3</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/regular\">regular link</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/a/b/relative\">relative link 1</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/a/b/c/relative\">relative link 2</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/a/b/c/e/f/relative\">relative link 3</a>")
       end
     end
 
@@ -132,10 +132,10 @@ feature 'Projects > Wiki > User previews markdown changes', feature: true, js: t
 
         expect(page).to have_content("regular link")
 
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/regular\">regular link</a>")
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/a-page/b-page/relative\">relative link 1</a>")
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/a-page/b-page/c-page/relative\">relative link 2</a>")
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/a-page/b-page/c-page/e/f/relative\">relative link 3</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/regular\">regular link</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/a-page/b-page/relative\">relative link 1</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/a-page/b-page/c-page/relative\">relative link 2</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/a-page/b-page/c-page/e/f/relative\">relative link 3</a>")
       end
     end
 
@@ -149,10 +149,10 @@ feature 'Projects > Wiki > User previews markdown changes', feature: true, js: t
 
         expect(page).to have_content("regular link")
 
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/regular\">regular link</a>")
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/a-page/b-page/relative\">relative link 1</a>")
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/a-page/b-page/c-page/relative\">relative link 2</a>")
-        expect(page.html).to include("<a href=\"/#{project.path_with_namespace}/wikis/a-page/b-page/c-page/e/f/relative\">relative link 3</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/regular\">regular link</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/a-page/b-page/relative\">relative link 1</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/a-page/b-page/c-page/relative\">relative link 2</a>")
+        expect(page.html).to include("<a href=\"/#{project.full_path}/wikis/a-page/b-page/c-page/e/f/relative\">relative link 3</a>")
       end
     end
   end

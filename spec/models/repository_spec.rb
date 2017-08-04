@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Repository, models: true do
+describe Repository do
   include RepoHelpers
   TestBlob = Struct.new(:path)
 
@@ -300,7 +300,7 @@ describe Repository, models: true do
     end
 
     context "when committing to another project" do
-      let(:forked_project) { create(:project) }
+      let(:forked_project) { create(:project, :repository) }
 
       it "creates a fork and commit to the forked project" do
         expect do
@@ -345,6 +345,17 @@ describe Repository, models: true do
       blob = repository.blob_at('master', 'NEWCHANGELOG')
 
       expect(blob.data).to eq('Changelog!')
+    end
+
+    it 'creates new file and dir when file_path has a forward slash' do
+      expect do
+        repository.create_file(user, 'new_dir/new_file.txt', 'File!',
+                               message: 'Create new_file with new_dir',
+                               branch_name: 'master')
+      end.to change { repository.commits('master').count }.by(1)
+
+      expect(repository.tree('master', 'new_dir').path).to eq('new_dir')
+      expect(repository.blob_at('master', 'new_dir/new_file.txt').data).to eq('File!')
     end
 
     it 'respects the autocrlf setting' do
@@ -504,7 +515,7 @@ describe Repository, models: true do
     end
 
     it 'properly handles query when repo is empty' do
-      repository = create(:empty_project).repository
+      repository = create(:project).repository
       results = repository.search_files_by_content('test', 'master')
 
       expect(results).to match_array([])
@@ -532,7 +543,7 @@ describe Repository, models: true do
     end
 
     it 'properly handles query when repo is empty' do
-      repository = create(:empty_project).repository
+      repository = create(:project).repository
 
       results = repository.search_files_by_name('test', 'master')
 
@@ -550,7 +561,7 @@ describe Repository, models: true do
     end
   end
 
-  describe "#changelog", caching: true do
+  describe "#changelog", :use_clean_rails_memory_store_caching do
     it 'accepts changelog' do
       expect(repository.tree).to receive(:blobs).and_return([TestBlob.new('changelog')])
 
@@ -582,7 +593,7 @@ describe Repository, models: true do
     end
   end
 
-  describe "#license_blob", caching: true do
+  describe "#license_blob", :use_clean_rails_memory_store_caching do
     before do
       repository.delete_file(
         user, 'LICENSE', message: 'Remove LICENSE', branch_name: 'master')
@@ -627,7 +638,7 @@ describe Repository, models: true do
     end
   end
 
-  describe '#license_key', caching: true do
+  describe '#license_key', :use_clean_rails_memory_store_caching do
     before do
       repository.delete_file(user, 'LICENSE',
         message: 'Remove LICENSE', branch_name: 'master')
@@ -692,7 +703,7 @@ describe Repository, models: true do
     end
   end
 
-  describe "#gitlab_ci_yml", caching: true do
+  describe "#gitlab_ci_yml", :use_clean_rails_memory_store_caching do
     it 'returns valid file' do
       files = [TestBlob.new('file'), TestBlob.new('.gitlab-ci.yml'), TestBlob.new('copying')]
       expect(repository.tree).to receive(:blobs).and_return(files)
@@ -931,7 +942,7 @@ describe Repository, models: true do
       end
 
       it 'expires creation and branch cache' do
-        empty_repository = create(:empty_project, :empty_repo).repository
+        empty_repository = create(:project, :empty_repo).repository
 
         expect(empty_repository).to receive(:expire_exists_cache)
         expect(empty_repository).to receive(:expire_root_ref_cache)
@@ -945,21 +956,25 @@ describe Repository, models: true do
     end
   end
 
-  describe '#exists?' do
+  shared_examples 'repo exists check' do
     it 'returns true when a repository exists' do
       expect(repository.exists?).to eq(true)
     end
 
-    it 'returns false when a repository does not exist' do
-      allow(repository).to receive(:refs_directory_exists?).and_return(false)
+    it 'returns false if no full path can be constructed' do
+      allow(repository).to receive(:full_path).and_return(nil)
 
       expect(repository.exists?).to eq(false)
     end
+  end
 
-    it 'returns false when there is no namespace' do
-      allow(repository).to receive(:path_with_namespace).and_return(nil)
+  describe '#exists?' do
+    context 'when repository_exists is disabled' do
+      it_behaves_like 'repo exists check'
+    end
 
-      expect(repository.exists?).to eq(false)
+    context 'when repository_exists is enabled', skip_gitaly_mock: true do
+      it_behaves_like 'repo exists check'
     end
   end
 
@@ -1600,7 +1615,7 @@ describe Repository, models: true do
     end
   end
 
-  describe '#contribution_guide', caching: true do
+  describe '#contribution_guide', :use_clean_rails_memory_store_caching do
     it 'returns and caches the output' do
       expect(repository).to receive(:file_on_head)
         .with(:contributing)
@@ -1614,7 +1629,7 @@ describe Repository, models: true do
     end
   end
 
-  describe '#gitignore', caching: true do
+  describe '#gitignore', :use_clean_rails_memory_store_caching do
     it 'returns and caches the output' do
       expect(repository).to receive(:file_on_head)
         .with(:gitignore)
@@ -1627,7 +1642,7 @@ describe Repository, models: true do
     end
   end
 
-  describe '#koding_yml', caching: true do
+  describe '#koding_yml', :use_clean_rails_memory_store_caching do
     it 'returns and caches the output' do
       expect(repository).to receive(:file_on_head)
         .with(:koding)
@@ -1640,7 +1655,7 @@ describe Repository, models: true do
     end
   end
 
-  describe '#readme', caching: true do
+  describe '#readme', :use_clean_rails_memory_store_caching do
     context 'with a non-existing repository' do
       it 'returns nil' do
         allow(repository).to receive(:tree).with(:head).and_return(nil)
@@ -1789,7 +1804,7 @@ describe Repository, models: true do
   end
 
   describe '#commit_count_for_ref' do
-    let(:project) { create :empty_project }
+    let(:project) { create :project }
 
     context 'with a non-existing repository' do
       it 'returns 0' do
@@ -1811,7 +1826,7 @@ describe Repository, models: true do
     end
   end
 
-  describe '#cache_method_output', caching: true do
+  describe '#cache_method_output', :use_clean_rails_memory_store_caching do
     context 'with a non-existing repository' do
       let(:value) do
         repository.cache_method_output(:cats, fallback: 10) do

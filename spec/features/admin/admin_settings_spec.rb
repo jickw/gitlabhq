@@ -1,11 +1,11 @@
 require 'spec_helper'
 
-feature 'Admin updates settings', feature: true do
+feature 'Admin updates settings' do
   include StubENV
 
   before do
     stub_env('IN_MEMORY_APPLICATION_SETTINGS', 'false')
-    gitlab_sign_in :admin
+    sign_in(create(:admin))
     visit admin_application_settings_path
   end
 
@@ -14,6 +14,19 @@ feature 'Admin updates settings', feature: true do
     click_button 'Save'
 
     expect(page).to have_content "Application settings saved successfully"
+  end
+
+  scenario 'Uncheck all restricted visibility levels' do
+    find('#application_setting_visibility_level_0').set(false)
+    find('#application_setting_visibility_level_10').set(false)
+    find('#application_setting_visibility_level_20').set(false)
+
+    click_button 'Save'
+
+    expect(page).to have_content "Application settings saved successfully"
+    expect(find('#application_setting_visibility_level_0')).not_to be_checked
+    expect(find('#application_setting_visibility_level_10')).not_to be_checked
+    expect(find('#application_setting_visibility_level_20')).not_to be_checked
   end
 
   scenario 'Change application settings' do
@@ -54,6 +67,14 @@ feature 'Admin updates settings', feature: true do
     expect(find_field('Webhook').value).to eq 'http://localhost'
     expect(find_field('Username').value).to eq 'test_user'
     expect(find('#service_push_channel').value).to eq '#test_channel'
+  end
+
+  context 'sign-in restrictions', :js do
+    it 'de-activates oauth sign-in source' do
+      find('.btn', text: 'GitLab.com').click
+      
+      expect(find('.btn', text: 'GitLab.com')).not_to have_css('.active')
+    end
   end
 
   def check_all_events

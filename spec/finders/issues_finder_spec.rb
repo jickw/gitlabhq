@@ -3,8 +3,8 @@ require 'spec_helper'
 describe IssuesFinder do
   set(:user) { create(:user) }
   set(:user2) { create(:user) }
-  set(:project1) { create(:empty_project) }
-  set(:project2) { create(:empty_project) }
+  set(:project1) { create(:project) }
+  set(:project2) { create(:project) }
   set(:milestone) { create(:milestone, project: project1) }
   set(:label) { create(:label, project: project2) }
   set(:issue1) { create(:issue, author: user, assignees: [user], project: project1, milestone: milestone, title: 'gitlab', created_at: 1.week.ago) }
@@ -59,6 +59,23 @@ describe IssuesFinder do
         end
       end
 
+      context 'filtering by group milestone' do
+        let!(:group) { create(:group, :public) }
+        let(:group_milestone) { create(:milestone, group: group) }
+        let!(:group_member) { create(:group_member, group: group, user: user) }
+        let(:params) { { milestone_title: group_milestone.title } }
+
+        before do
+          project2.update(namespace: group)
+          issue2.update(milestone: group_milestone)
+          issue3.update(milestone: group_milestone)
+        end
+
+        it 'returns issues assigned to that group milestone' do
+          expect(issues).to contain_exactly(issue2, issue3)
+        end
+      end
+
       context 'filtering by no milestone' do
         let(:params) { { milestone_title: Milestone::None.title } }
 
@@ -70,9 +87,9 @@ describe IssuesFinder do
       context 'filtering by upcoming milestone' do
         let(:params) { { milestone_title: Milestone::Upcoming.name } }
 
-        let(:project_no_upcoming_milestones) { create(:empty_project, :public) }
-        let(:project_next_1_1) { create(:empty_project, :public) }
-        let(:project_next_8_8) { create(:empty_project, :public) }
+        let(:project_no_upcoming_milestones) { create(:project, :public) }
+        let(:project_next_1_1) { create(:project, :public) }
+        let(:project_next_8_8) { create(:project, :public) }
 
         let(:yesterday) { Date.today - 1.day }
         let(:tomorrow) { Date.today + 1.day }
@@ -104,9 +121,9 @@ describe IssuesFinder do
       context 'filtering by started milestone' do
         let(:params) { { milestone_title: Milestone::Started.name } }
 
-        let(:project_no_started_milestones) { create(:empty_project, :public) }
-        let(:project_started_1_and_2) { create(:empty_project, :public) }
-        let(:project_started_8) { create(:empty_project, :public) }
+        let(:project_no_started_milestones) { create(:project, :public) }
+        let(:project_started_1_and_2) { create(:project, :public) }
+        let(:project_started_8) { create(:project, :public) }
 
         let(:yesterday) { Date.today - 1.day }
         let(:tomorrow) { Date.today + 1.day }
@@ -251,7 +268,7 @@ describe IssuesFinder do
 
       it 'finds issues user can access due to group' do
         group = create(:group)
-        project = create(:empty_project, group: group)
+        project = create(:project, group: group)
         issue = create(:issue, project: project)
         group.add_user(user, :owner)
 
@@ -279,7 +296,7 @@ describe IssuesFinder do
       let(:scope) { nil }
 
       it "doesn't return team-only issues to non team members" do
-        project = create(:empty_project, :public, :issues_private)
+        project = create(:project, :public, :issues_private)
         issue = create(:issue, project: project)
 
         expect(issues).not_to include(issue)
@@ -298,7 +315,7 @@ describe IssuesFinder do
   describe '#with_confidentiality_access_check' do
     let(:guest) { create(:user) }
     set(:authorized_user) { create(:user) }
-    set(:project) { create(:empty_project, namespace: authorized_user.namespace) }
+    set(:project) { create(:project, namespace: authorized_user.namespace) }
     set(:public_issue) { create(:issue, project: project) }
     set(:confidential_issue) { create(:issue, project: project, confidential: true) }
 

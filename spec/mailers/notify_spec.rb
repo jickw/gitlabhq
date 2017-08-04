@@ -52,7 +52,7 @@ describe Notify do
           it 'has the correct subject and body' do
             aggregate_failures do
               is_expected.to have_referable_subject(issue)
-              is_expected.to have_body_text(namespace_project_issue_path(project.namespace, project, issue))
+              is_expected.to have_body_text(project_issue_path(project, issue))
             end
           end
 
@@ -99,7 +99,7 @@ describe Notify do
               is_expected.to have_referable_subject(issue, reply: true)
               is_expected.to have_html_escaped_body_text(previous_assignee.name)
               is_expected.to have_html_escaped_body_text(assignee.name)
-              is_expected.to have_body_text(namespace_project_issue_path(project.namespace, project, issue))
+              is_expected.to have_body_text(project_issue_path(project, issue))
             end
           end
         end
@@ -125,7 +125,7 @@ describe Notify do
             aggregate_failures do
               is_expected.to have_referable_subject(issue, reply: true)
               is_expected.to have_body_text('foo, bar, and baz')
-              is_expected.to have_body_text(namespace_project_issue_path(project.namespace, project, issue))
+              is_expected.to have_body_text(project_issue_path(project, issue))
             end
           end
 
@@ -165,7 +165,7 @@ describe Notify do
               is_expected.to have_referable_subject(issue, reply: true)
               is_expected.to have_body_text(status)
               is_expected.to have_html_escaped_body_text(current_user.name)
-              is_expected.to have_body_text(namespace_project_issue_path project.namespace, project, issue)
+              is_expected.to have_body_text(project_issue_path project, issue)
             end
           end
         end
@@ -185,13 +185,12 @@ describe Notify do
           end
 
           it 'has the correct subject and body' do
-            new_issue_url = namespace_project_issue_path(new_issue.project.namespace,
-                                                         new_issue.project, new_issue)
+            new_issue_url = project_issue_path(new_issue.project, new_issue)
 
             aggregate_failures do
               is_expected.to have_referable_subject(issue, reply: true)
               is_expected.to have_body_text(new_issue_url)
-              is_expected.to have_body_text(namespace_project_issue_path(project.namespace, project, issue))
+              is_expected.to have_body_text(project_issue_path(project, issue))
             end
           end
         end
@@ -216,7 +215,7 @@ describe Notify do
           it 'has the correct subject and body' do
             aggregate_failures do
               is_expected.to have_referable_subject(merge_request)
-              is_expected.to have_body_text(namespace_project_merge_request_path(project.namespace, project, merge_request))
+              is_expected.to have_body_text(project_merge_request_path(project, merge_request))
               is_expected.to have_body_text(merge_request.source_branch)
               is_expected.to have_body_text(merge_request.target_branch)
             end
@@ -265,7 +264,7 @@ describe Notify do
             aggregate_failures do
               is_expected.to have_referable_subject(merge_request, reply: true)
               is_expected.to have_html_escaped_body_text(previous_assignee.name)
-              is_expected.to have_body_text(namespace_project_merge_request_path(project.namespace, project, merge_request))
+              is_expected.to have_body_text(project_merge_request_path(project, merge_request))
               is_expected.to have_html_escaped_body_text(assignee.name)
             end
           end
@@ -291,7 +290,7 @@ describe Notify do
           it 'has the correct subject and body' do
             is_expected.to have_referable_subject(merge_request, reply: true)
             is_expected.to have_body_text('foo, bar, and baz')
-            is_expected.to have_body_text(namespace_project_merge_request_path(project.namespace, project, merge_request))
+            is_expected.to have_body_text(project_merge_request_path(project, merge_request))
           end
         end
 
@@ -316,7 +315,7 @@ describe Notify do
               is_expected.to have_referable_subject(merge_request, reply: true)
               is_expected.to have_body_text(status)
               is_expected.to have_html_escaped_body_text(current_user.name)
-              is_expected.to have_body_text(namespace_project_merge_request_path(project.namespace, project, merge_request))
+              is_expected.to have_body_text(project_merge_request_path(project, merge_request))
             end
           end
         end
@@ -341,7 +340,7 @@ describe Notify do
             aggregate_failures do
               is_expected.to have_referable_subject(merge_request, reply: true)
               is_expected.to have_body_text('merged')
-              is_expected.to have_body_text(namespace_project_merge_request_path(project.namespace, project, merge_request))
+              is_expected.to have_body_text(project_merge_request_path(project, merge_request))
             end
           end
         end
@@ -349,7 +348,7 @@ describe Notify do
     end
 
     describe 'project was moved' do
-      let(:project) { create(:empty_project) }
+      let(:project) { create(:project) }
       let(:user) { create(:user) }
       subject { described_class.project_was_moved_email(project.id, user.id, "gitlab/gitlab") }
 
@@ -367,7 +366,7 @@ describe Notify do
     describe 'project access requested' do
       context 'for a project in a user namespace' do
         let(:project) do
-          create(:empty_project, :public, :access_requestable) do |project|
+          create(:project, :public, :access_requestable) do |project|
             project.team << [project.owner, :master, project.owner]
           end
         end
@@ -390,7 +389,7 @@ describe Notify do
 
           is_expected.to have_subject "Request to join the #{project.name_with_namespace} project"
           is_expected.to have_html_escaped_body_text project.name_with_namespace
-          is_expected.to have_body_text namespace_project_project_members_url(project.namespace, project)
+          is_expected.to have_body_text project_project_members_url(project)
           is_expected.to have_body_text project_member.human_access
         end
       end
@@ -398,7 +397,7 @@ describe Notify do
       context 'for a project in a group' do
         let(:group_owner) { create(:user) }
         let(:group) { create(:group).tap { |g| g.add_owner(group_owner) } }
-        let(:project) { create(:empty_project, :public, :access_requestable, namespace: group) }
+        let(:project) { create(:project, :public, :access_requestable, namespace: group) }
         let(:user) { create(:user) }
         let(:project_member) do
           project.request_access(user)
@@ -417,14 +416,14 @@ describe Notify do
 
           is_expected.to have_subject "Request to join the #{project.name_with_namespace} project"
           is_expected.to have_html_escaped_body_text project.name_with_namespace
-          is_expected.to have_body_text namespace_project_project_members_url(project.namespace, project)
+          is_expected.to have_body_text project_project_members_url(project)
           is_expected.to have_body_text project_member.human_access
         end
       end
     end
 
     describe 'project access denied' do
-      let(:project) { create(:empty_project, :public, :access_requestable) }
+      let(:project) { create(:project, :public, :access_requestable) }
       let(:user) { create(:user) }
       let(:project_member) do
         project.request_access(user)
@@ -445,7 +444,7 @@ describe Notify do
 
     describe 'project access changed' do
       let(:owner) { create(:user, name: "Chang O'Keefe") }
-      let(:project) { create(:empty_project, :public, :access_requestable, namespace: owner.namespace) }
+      let(:project) { create(:project, :public, :access_requestable, namespace: owner.namespace) }
       let(:user) { create(:user) }
       let(:project_member) { create(:project_member, project: project, user: user) }
       subject { described_class.member_access_granted_email('project', project_member.id) }
@@ -475,7 +474,7 @@ describe Notify do
     end
 
     describe 'project invitation' do
-      let(:project) { create(:empty_project) }
+      let(:project) { create(:project) }
       let(:master) { create(:user).tap { |u| project.team << [u, :master] } }
       let(:project_member) { invite_to_project(project, inviter: master) }
 
@@ -495,7 +494,7 @@ describe Notify do
     end
 
     describe 'project invitation accepted' do
-      let(:project) { create(:empty_project) }
+      let(:project) { create(:project) }
       let(:invited_user) { create(:user, name: 'invited user') }
       let(:master) { create(:user).tap { |u| project.team << [u, :master] } }
       let(:project_member) do
@@ -520,7 +519,7 @@ describe Notify do
     end
 
     describe 'project invitation declined' do
-      let(:project) { create(:empty_project) }
+      let(:project) { create(:project) }
       let(:master) { create(:user).tap { |u| project.team << [u, :master] } }
       let(:project_member) do
         invitee = invite_to_project(project, inviter: master)
@@ -609,7 +608,7 @@ describe Notify do
 
       describe 'on a merge request' do
         let(:merge_request) { create(:merge_request, source_project: project, target_project: project) }
-        let(:note_on_merge_request_path) { namespace_project_merge_request_path(project.namespace, project, merge_request, anchor: "note_#{note.id}") }
+        let(:note_on_merge_request_path) { project_merge_request_path(project, merge_request, anchor: "note_#{note.id}") }
 
         before do
           allow(note).to receive(:noteable).and_return(merge_request)
@@ -634,7 +633,7 @@ describe Notify do
 
       describe 'on an issue' do
         let(:issue) { create(:issue, project: project) }
-        let(:note_on_issue_path) { namespace_project_issue_path(project.namespace, project, issue, anchor: "note_#{note.id}") }
+        let(:note_on_issue_path) { project_issue_path(project, issue, anchor: "note_#{note.id}") }
 
         before do
           allow(note).to receive(:noteable).and_return(issue)
@@ -725,7 +724,7 @@ describe Notify do
       describe 'on a merge request' do
         let(:merge_request) { create(:merge_request, source_project: project, target_project: project) }
         let(:note) { create(:discussion_note_on_merge_request, noteable: merge_request, project: project, author: note_author) }
-        let(:note_on_merge_request_path) { namespace_project_merge_request_path(project.namespace, project, merge_request, anchor: "note_#{note.id}") }
+        let(:note_on_merge_request_path) { project_merge_request_path(project, merge_request, anchor: "note_#{note.id}") }
 
         before do
           allow(note).to receive(:noteable).and_return(merge_request)
@@ -752,7 +751,7 @@ describe Notify do
       describe 'on an issue' do
         let(:issue) { create(:issue, project: project) }
         let(:note) { create(:discussion_note_on_issue, noteable: issue, project: project, author: note_author) }
-        let(:note_on_issue_path) { namespace_project_issue_path(project.namespace, project, issue, anchor: "note_#{note.id}") }
+        let(:note_on_issue_path) { project_issue_path(project, issue, anchor: "note_#{note.id}") }
 
         before do
           allow(note).to receive(:noteable).and_return(issue)
@@ -1022,7 +1021,7 @@ describe Notify do
   describe 'email on push for a created branch' do
     let(:example_site_path) { root_path }
     let(:user) { create(:user) }
-    let(:tree_path) { namespace_project_tree_path(project.namespace, project, "empty-branch") }
+    let(:tree_path) { project_tree_path(project, "empty-branch") }
 
     subject { described_class.repository_push_email(project.id, author_id: user.id, ref: 'refs/heads/empty-branch', action: :create) }
 
@@ -1048,7 +1047,7 @@ describe Notify do
   describe 'email on push for a created tag' do
     let(:example_site_path) { root_path }
     let(:user) { create(:user) }
-    let(:tree_path) { namespace_project_tree_path(project.namespace, project, "v1.0") }
+    let(:tree_path) { project_tree_path(project, "v1.0") }
 
     subject { described_class.repository_push_email(project.id, author_id: user.id, ref: 'refs/tags/v1.0', action: :create) }
 
@@ -1122,7 +1121,7 @@ describe Notify do
     let(:raw_compare) { Gitlab::Git::Compare.new(project.repository.raw_repository, sample_image_commit.id, sample_commit.id) }
     let(:compare) { Compare.decorate(raw_compare, project) }
     let(:commits) { compare.commits }
-    let(:diff_path) { namespace_project_compare_path(project.namespace, project, from: Commit.new(compare.base, project), to: Commit.new(compare.head, project)) }
+    let(:diff_path) { project_compare_path(project, from: Commit.new(compare.base, project), to: Commit.new(compare.head, project)) }
     let(:send_from_committer_email) { false }
     let(:diff_refs) { Gitlab::Diff::DiffRefs.new(base_sha: project.merge_base_commit(sample_image_commit.id, sample_commit.id).id, head_sha: sample_commit.id) }
 
@@ -1216,7 +1215,7 @@ describe Notify do
     let(:raw_compare) { Gitlab::Git::Compare.new(project.repository.raw_repository, sample_commit.parent_id, sample_commit.id) }
     let(:compare) { Compare.decorate(raw_compare, project) }
     let(:commits) { compare.commits }
-    let(:diff_path) { namespace_project_commit_path(project.namespace, project, commits.first) }
+    let(:diff_path) { project_commit_path(project, commits.first) }
     let(:diff_refs) { Gitlab::Diff::DiffRefs.new(base_sha: project.merge_base_commit(sample_image_commit.id, sample_commit.id).id, head_sha: sample_commit.id) }
 
     subject { described_class.repository_push_email(project.id, author_id: user.id, ref: 'refs/heads/master', action: :push, compare: compare, diff_refs: diff_refs) }
@@ -1243,7 +1242,7 @@ describe Notify do
   end
 
   describe 'HTML emails setting' do
-    let(:project) { create(:empty_project) }
+    let(:project) { create(:project) }
     let(:user) { create(:user) }
     let(:multipart_mail) { described_class.project_was_moved_email(project.id, user.id, "gitlab/gitlab") }
 

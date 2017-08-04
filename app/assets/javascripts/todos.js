@@ -2,7 +2,7 @@
 
 import UsersSelect from './users_select';
 
-class Todos {
+export default class Todos {
   constructor() {
     this.initFilters();
     this.bindEvents();
@@ -37,10 +37,6 @@ class Todos {
     this.initFilterDropdown($('.js-type-search'), 'type');
     this.initFilterDropdown($('.js-action-search'), 'action_id');
 
-    $('form.filter-form').on('submit', function applyFilters(event) {
-      event.preventDefault();
-      gl.utils.visitUrl(`${this.action}&${$(this).serialize()}`);
-    });
     return new UsersSelect();
   }
 
@@ -56,6 +52,7 @@ class Todos {
   }
 
   updateRowStateClicked(e) {
+    e.stopPropagation();
     e.preventDefault();
 
     const target = e.target;
@@ -96,6 +93,7 @@ class Todos {
   }
 
   updateAllStateClicked(e) {
+    e.stopPropagation();
     e.preventDefault();
 
     const target = e.currentTarget;
@@ -146,6 +144,7 @@ class Todos {
     if (gl.utils.isMetaClick(e)) {
       const windowTarget = '_blank';
       const selected = e.target;
+      e.stopPropagation();
       e.preventDefault();
 
       if (selected.tagName === 'IMG') {
@@ -159,6 +158,3 @@ class Todos {
     }
   }
 }
-
-window.gl = window.gl || {};
-gl.Todos = Todos;

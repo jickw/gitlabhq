@@ -4,9 +4,9 @@ describe MergeRequestsFinder do
   let(:user)  { create :user }
   let(:user2) { create :user }
 
-  let(:project1) { create(:empty_project) }
-  let(:project2) { create(:empty_project, forked_from_project: project1) }
-  let(:project3) { create(:empty_project, :archived, forked_from_project: project1) }
+  let(:project1) { create(:project) }
+  let(:project2) { create(:project, forked_from_project: project1) }
+  let(:project3) { create(:project, :archived, forked_from_project: project1) }
 
   let!(:merge_request1) { create(:merge_request, :simple, author: user, source_project: project2, target_project: project1) }
   let!(:merge_request2) { create(:merge_request, :simple, author: user, source_project: project2, target_project: project1, state: 'closed') }
@@ -47,8 +47,27 @@ describe MergeRequestsFinder do
       expect(merge_requests).to contain_exactly(merge_request1)
     end
 
+    context 'filtering by group milestone' do
+      let!(:group) { create(:group, :public) }
+      let(:group_milestone) { create(:milestone, group: group) }
+      let!(:group_member) { create(:group_member, group: group, user: user) }
+      let(:params) { { milestone_title: group_milestone.title } }
+
+      before do
+        project2.update(namespace: group)
+        merge_request2.update(milestone: group_milestone)
+        merge_request3.update(milestone: group_milestone)
+      end
+
+      it 'returns issues assigned to that group milestone' do
+        merge_requests = described_class.new(user, params).execute
+
+        expect(merge_requests).to contain_exactly(merge_request2, merge_request3)
+      end
+    end
+
     context 'with created_after and created_before params' do
-      let(:project4) { create(:empty_project, forked_from_project: project1) }
+      let(:project4) { create(:project, forked_from_project: project1) }
 
       let!(:new_merge_request) do
         create(:merge_request,

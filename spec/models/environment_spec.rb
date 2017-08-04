@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-describe Environment, models: true do
-  set(:project) { create(:empty_project) }
+describe Environment do
+  set(:project) { create(:project) }
   subject(:environment) { create(:environment, project: project) }
 
   it { is_expected.to belong_to(:project) }
@@ -21,7 +21,7 @@ describe Environment, models: true do
   it { is_expected.to validate_uniqueness_of(:external_url).scoped_to(:project_id) }
 
   describe '.order_by_last_deployed_at' do
-    let(:project) { create(:project) }
+    let(:project) { create(:project, :repository) }
     let!(:environment1) { create(:environment, project: project) }
     let!(:environment2) { create(:environment, project: project) }
     let!(:environment3) { create(:environment, project: project) }
@@ -120,28 +120,17 @@ describe Environment, models: true do
     let(:head_commit)   { project.commit }
     let(:commit)        { project.commit.parent }
 
-    context 'Gitaly find_ref_name feature disabled' do
-      it 'returns deployment id for the environment' do
-        expect(environment.first_deployment_for(commit)).to eq deployment1
-      end
-
-      it 'return nil when no deployment is found' do
-        expect(environment.first_deployment_for(head_commit)).to eq nil
-      end
+    it 'returns deployment id for the environment' do
+      expect(environment.first_deployment_for(commit)).to eq deployment1
     end
 
-    # TODO: Uncomment when feature is reenabled
-    # context 'Gitaly find_ref_name feature enabled' do
-    #   before do
-    #     allow(Gitlab::GitalyClient).to receive(:feature_enabled?).with(:find_ref_name).and_return(true)
-    #   end
-    #
-    #   it 'calls GitalyClient' do
-    #     expect_any_instance_of(Gitlab::GitalyClient::Ref).to receive(:find_ref_name)
-    #
-    #     environment.first_deployment_for(commit)
-    #   end
-    # end
+    it 'return nil when no deployment is found' do
+      expect(environment.first_deployment_for(head_commit)).to eq nil
+    end
+
+    it 'returns a UTF-8 ref' do
+      expect(environment.first_deployment_for(commit).ref).to be_utf8
+    end
   end
 
   describe '#environment_type' do

@@ -1,8 +1,8 @@
 require 'spec_helper'
 
-describe Gitlab::ImportExport::ProjectTreeSaver, services: true do
+describe Gitlab::ImportExport::ProjectTreeSaver do
   describe 'saves the project tree into a json object' do
-    let(:shared) { Gitlab::ImportExport::Shared.new(relative_path: project.path_with_namespace) }
+    let(:shared) { Gitlab::ImportExport::Shared.new(relative_path: project.full_path) }
     let(:project_tree_saver) { described_class.new(project: project, current_user: user, shared: shared) }
     let(:export_path) { "#{Dir.tmpdir}/project_tree_saver_spec" }
     let(:user) { create(:user) }
@@ -85,6 +85,10 @@ describe Gitlab::ImportExport::ProjectTreeSaver, services: true do
 
       it 'has merge request diff files' do
         expect(saved_project_json['merge_requests'].first['merge_request_diff']['merge_request_diff_files']).not_to be_empty
+      end
+
+      it 'has merge request diff commits' do
+        expect(saved_project_json['merge_requests'].first['merge_request_diff']['merge_request_diff_commits']).not_to be_empty
       end
 
       it 'has merge requests comments' do

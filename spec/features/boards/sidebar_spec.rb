@@ -1,9 +1,9 @@
 require 'rails_helper'
 
-describe 'Issue Boards', feature: true, js: true do
+describe 'Issue Boards', js: true do
   let(:user)         { create(:user) }
   let(:user2)        { create(:user) }
-  let(:project)      { create(:empty_project, :public) }
+  let(:project)      { create(:project, :public) }
   let!(:milestone)   { create(:milestone, project: project) }
   let!(:development) { create(:label, project: project, name: 'Development') }
   let!(:bug)         { create(:label, project: project, name: 'Bug') }
@@ -20,9 +20,9 @@ describe 'Issue Boards', feature: true, js: true do
 
     project.team << [user, :master]
 
-    gitlab_sign_in(user)
+    sign_in(user)
 
-    visit namespace_project_board_path(project.namespace, project, board)
+    visit project_board_path(project, board)
     wait_for_requests
   end
 
@@ -83,7 +83,7 @@ describe 'Issue Boards', feature: true, js: true do
     create(:issue, project: project)
     create(:issue, :closed, project: project)
 
-    visit namespace_project_board_path(project.namespace, project, board)
+    visit project_board_path(project, board)
     wait_for_requests
 
     click_card(find('.board:nth-child(1)').first('.card'))

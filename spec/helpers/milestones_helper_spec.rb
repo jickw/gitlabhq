@@ -2,15 +2,15 @@ require 'spec_helper'
 
 describe MilestonesHelper do
   describe '#milestones_filter_dropdown_path' do
-    let(:project) { create(:empty_project) }
-    let(:project2) { create(:empty_project) }
+    let(:project) { create(:project) }
+    let(:project2) { create(:project) }
     let(:group) { create(:group) }
 
     context 'when @project present' do
       it 'returns project milestones JSON URL' do
         assign(:project, project)
 
-        expect(helper.milestones_filter_dropdown_path).to eq(namespace_project_milestones_path(project.namespace, project, :json))
+        expect(helper.milestones_filter_dropdown_path).to eq(project_milestones_path(project, :json))
       end
     end
 
@@ -18,7 +18,7 @@ describe MilestonesHelper do
       it 'returns targeted project milestones JSON URL' do
         assign(:target_project, project2)
 
-        expect(helper.milestones_filter_dropdown_path).to eq(namespace_project_milestones_path(project2.namespace, project2, :json))
+        expect(helper.milestones_filter_dropdown_path).to eq(project_milestones_path(project2, :json))
       end
     end
 
@@ -57,7 +57,7 @@ describe MilestonesHelper do
   end
 
   describe '#milestone_counts' do
-    let(:project) { create(:empty_project) }
+    let(:project) { create(:project) }
     let(:counts) { helper.milestone_counts(project.milestones) }
 
     context 'when there are milestones' do

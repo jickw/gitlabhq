@@ -28,7 +28,7 @@ describe Projects::ServicesController do
 
     context 'success' do
       context 'with empty project' do
-        let(:project) { create(:empty_project) }
+        let(:project) { create(:project) }
 
         context 'with chat notification service' do
           let(:service) { project.create_microsoft_teams_service(webhook: 'http://webhook.com') }
@@ -79,7 +79,7 @@ describe Projects::ServicesController do
         put :update,
           namespace_id: project.namespace.id, project_id: project.id, id: service.id, service: { active: true }
 
-        expect(response).to redirect_to(namespace_project_settings_integrations_path(project.namespace, project))
+        expect(response).to redirect_to(project_settings_integrations_path(project))
         expect(flash[:notice]).to eq 'HipChat activated.'
       end
     end

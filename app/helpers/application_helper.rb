@@ -264,7 +264,11 @@ module ApplicationHelper
   end
 
   def page_class
-    "issue-boards-page" if current_controller?(:boards)
+    class_names = []
+    class_names << 'issue-boards-page' if current_controller?(:boards)
+    class_names << 'with-performance-bar' if performance_bar_enabled?
+
+    class_names
   end
 
   # Returns active css class when condition returns true
@@ -296,10 +300,6 @@ module ApplicationHelper
     else
       "https://www.twitter.com/#{name}"
     end
-  end
-
-  def can_toggle_new_nav?
-    Rails.env.development?
   end
 
   def show_new_nav?

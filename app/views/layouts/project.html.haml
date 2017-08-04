@@ -10,8 +10,9 @@
 - content_for :project_javascripts do
   - project = @target_project || @project
   - if current_user
+    -# haml-lint:disable InlineJavaScript
     :javascript
-      window.uploads_path = "#{namespace_project_uploads_path project.namespace,project}";
+      window.uploads_path = "#{project_uploads_path(project)}";
 
 - content_for :header_content do
   .js-dropdown-menu-projects
